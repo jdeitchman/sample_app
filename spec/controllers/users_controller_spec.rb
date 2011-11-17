@@ -42,6 +42,28 @@ describe UsersController do
       response.should have_selector("span.content", :content => mp2.content)
     end
 
+    it "should show the correct number of microposts in the sidebar" do
+      mp1 = Factory(:micropost, :user => @user, :content => "Foo bar")
+      mp2 = Factory(:micropost, :user => @user, :content => "Baz quux")
+      get :show, :id => @user
+      response.should have_selector( "td", :content => "Microposts 2" )
+    end
+
+    it "should not show delete link for microposts of other users" do
+      test_sign_in(@user)
+      other_user = Factory(:user, :email => "user@example.net")
+      mp1 = Factory(:micropost, :user => other_user, :content => "Foo bar")
+      get :show, :id => other_user
+      response.should_not have_selector("a", :content => "delete")
+    end
+
+    it "should show delete link for user's microposts" do
+      test_sign_in(@user)
+      mp1 = Factory(:micropost, :user => @user, :content => "Foo bar")
+      get :show, :id => @user
+      response.should have_selector("a", :href => "/microposts/#{mp1.id}", :content => "delete")
+    end
+
   end
 
   describe "GET 'new'" do
